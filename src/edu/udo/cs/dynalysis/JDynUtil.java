@@ -160,7 +160,10 @@ public class JDynUtil {
 			};
 		} else {
 			File file = new File(outFile);
-			file.getParentFile().mkdirs();
+			File parent = file.getParentFile();
+			if (parent != null) {
+				file.getParentFile().mkdirs();
+			}
 			try {
 				writer = new BufferedWriter(
 						new FileWriter(file, append));

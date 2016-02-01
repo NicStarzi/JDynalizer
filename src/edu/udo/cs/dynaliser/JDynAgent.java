@@ -24,7 +24,7 @@ public class JDynAgent implements ClassFileTransformer {
 	 * This file will be loaded as settings file if the no arguments are 
 	 * provided to the {@link #premain(String, Instrumentation)} method.<br>
 	 */
-	private static final String DEFAULT_SETTINGS_FILE_NAME = "jcstgSettings.xml";
+	private static final String DEFAULT_SETTINGS_FILE_NAME = "jdynSettings.xml";
 	
 	/**
 	 * This special method is being called before the main method of the user 
@@ -55,7 +55,7 @@ public class JDynAgent implements ClassFileTransformer {
 					settingsFileName = arg.substring("-file=".length());
 				// Any other arguments are undefined right now
 				} else {
-					System.err.println("JCSTG Error: Illegal Argument '"+arg+"'");
+					System.err.println("JDyn Error: Illegal Argument '"+arg+"'");
 				}
 			}
 		}
@@ -70,7 +70,7 @@ public class JDynAgent implements ClassFileTransformer {
 	/**
 	 * This key is used for the preferences used to store the user settings.<br>
 	 */
-	protected static final String JCSTG_PREFERENCES = JDynAgent.class.getName().replace('.', '/')+"/Preferences";
+	protected static final String JDYN_PREFERENCES = JDynAgent.class.getName().replace('.', '/')+"/Preferences";
 	
 	/**
 	 * This settings object is parsed from a file for easier access to 
@@ -128,7 +128,7 @@ public class JDynAgent implements ClassFileTransformer {
 		
 		// We write the settings we read from file to the preferences to share 
 		// them with other ClassLoader contexts.
-		Preferences prefs = Preferences.userRoot().node(JCSTG_PREFERENCES);
+		Preferences prefs = Preferences.userRoot().node(JDYN_PREFERENCES);
 		if (settings.isDebug()) {
 			debugMsg("Write settings to preferences:", settings);
 		}
@@ -301,7 +301,7 @@ public class JDynAgent implements ClassFileTransformer {
 	
 	public static void debugMsg(Object ... args) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("JCSTG: ");
+		sb.append("JDyn: ");
 		for (Object o : args) {
 			sb.append(o);
 			sb.append(" ");

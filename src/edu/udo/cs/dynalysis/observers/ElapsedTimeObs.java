@@ -22,10 +22,21 @@ public class ElapsedTimeObs implements JDynObserver {
 	private final Map<String, List<Long>> measuredTimeMap = new HashMap<>();
 	private Times times;
 	private String outPath;
+	private int minCalls;
 	
 	public void setArgs(String args) {
 		times = Times.parseString(JDynUtil.extractArg(args, "unit"));
 		outPath = JDynUtil.extractArg(args, "outfile");
+		String minCallsStr = JDynUtil.extractArg(args, "mincalls");
+		if (minCallsStr != null && !minCallsStr.isEmpty()) {
+			try {
+				minCalls = Integer.parseInt(minCallsStr);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			minCalls = -1;
+		}
 	}
 	
 	public void onStaticMethodEnd(CstEventStaticMethod event) {
@@ -76,6 +87,9 @@ public class ElapsedTimeObs implements JDynObserver {
 		lock.readLock().lock();
 		try {
 			for (Entry<String, List<Long>> timeEntry : measuredTimeMap.entrySet()) {
+				if (minCalls > 0 && timeEntry.getValue().size() < minCalls) {
+					continue;
+				}
 				JDynUtil.print(printKey, "=====  ", timeEntry.getKey(), "  =====");
 				
 				long worst = Long.MIN_VALUE;

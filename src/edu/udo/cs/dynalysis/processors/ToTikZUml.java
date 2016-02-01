@@ -227,7 +227,7 @@ public class ToTikZUml implements JDynProcessor {
 	}
 	//\newcommand{name}[num]{definition}
 	// \newcommand{\wbal}{The Wikibook about \LaTeX}
-	// This is ‘‘\wbal'' \ldots{} ‘‘\wbal''
+	// This is ï¿½ï¿½\wbal'' \ldots{} ï¿½ï¿½\wbal''
 	private void appendParamOrReturn(StringBuilder sb, Object obj) {
 		if (obj instanceof Integer
 				|| obj instanceof Double

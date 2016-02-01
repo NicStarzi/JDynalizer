@@ -16,12 +16,26 @@ public class PrintCallSequence implements JDynProcessor {
 	
 	private final AtomicInteger outCount = new AtomicInteger(0);
 	private String outPath;
+	private int minSize;
 	
 	public void setArgs(String args) {
 		outPath = JDynUtil.extractArg(args, "outfile");
+		String minSizeStr = JDynUtil.extractArg(args, "minsize");
+		if (minSizeStr != null && !minSizeStr.isEmpty()) {
+			try {
+				minSize = Integer.parseInt(minSizeStr);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			minSize = -1;
+		}
 	}
 	
 	public void processSequence(CallSequenceTree seq) {
+		if (minSize > 0 && seq.getEventCount() < minSize) {
+			return;
+		}
 		String title = "#   Call Sequence   #";
 		StringBuilder sbTitleCover = new StringBuilder(title.length());
 		sbTitleCover.append('#');

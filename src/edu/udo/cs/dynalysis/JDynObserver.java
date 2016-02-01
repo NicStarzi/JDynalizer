@@ -4,7 +4,6 @@ import edu.udo.cs.dynaliser.CstEventConstructor;
 import edu.udo.cs.dynaliser.CstEventException;
 import edu.udo.cs.dynaliser.CstEventMethod;
 import edu.udo.cs.dynaliser.CstEventStaticMethod;
-import edu.udo.cs.dynaliser.JDynEventDispatcher;
 
 public interface JDynObserver {
 	

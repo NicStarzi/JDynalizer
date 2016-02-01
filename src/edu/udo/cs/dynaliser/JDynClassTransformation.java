@@ -3,7 +3,6 @@ package edu.udo.cs.dynaliser;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.udo.cs.dynalysis.JDynObserver;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtField;

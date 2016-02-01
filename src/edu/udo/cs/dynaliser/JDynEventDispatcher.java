@@ -42,7 +42,7 @@ public class JDynEventDispatcher {
 	private static final JDynSettings settings;
 	
 	static {
-		Preferences prefs = Preferences.userRoot().node(JDynAgent.JCSTG_PREFERENCES);
+		Preferences prefs = Preferences.userRoot().node(JDynAgent.JDYN_PREFERENCES);
 		settings = new JDynSettings(prefs);
 		procThread = new JDynProcessorThread(settings);
 		// The debug status of settings, although mutable, does never change

@@ -373,7 +373,7 @@ public class JDynSettings {
 		 * @see #defineClass(String, byte[], int, int)
 		 */
 		public Class<?> loadFromBytes(String className, byte[] bytes) {
-			System.out.println("ProxyClassLoader.loadFromBytes()="+className);
+//			System.out.println("ProxyClassLoader.loadFromBytes()="+className);
 			return super.defineClass(className, bytes, 0, bytes.length);
 		}
 		
