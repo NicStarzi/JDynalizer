@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Boot-Class-Path: javassist.jar
+Premain-Class: edu.udo.cs.dynaliser.JDynAgent
+Main-Class: edu.udo.cs.dynaliser.JDynMain
