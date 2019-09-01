@@ -1,8 +1,6 @@
 package edu.udo.cs.dynalysis.observers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -19,7 +17,7 @@ import edu.udo.cs.dynalysis.processors.ElapsedTimeProc.Times;
 public class ElapsedTimeObs implements JDynObserver {
 	
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Map<String, List<Long>> measuredTimeMap = new HashMap<>();
+	private final Map<String, PerMethodData> measuredTimeMap = new HashMap<>();
 	private Times times;
 	private String outPath;
 	private int minCalls;
@@ -57,12 +55,19 @@ public class ElapsedTimeObs implements JDynObserver {
 		
 		lock.writeLock().lock();
 		try {
-			List<Long> timesList = measuredTimeMap.get(sig);
-			if (timesList == null) {
-				timesList = new ArrayList<>();
-				measuredTimeMap.put(sig, timesList);
+			PerMethodData data = measuredTimeMap.get(sig);
+			if (data == null) {
+				data = new PerMethodData();
+				measuredTimeMap.put(sig, data);
 			}
-			timesList.add(Long.valueOf(time));
+			data.calls++;
+			data.total += time;
+			if (time > data.worst) {
+				data.worst = time;
+			}
+			if (time < data.best) {
+				data.best = time;
+			}
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -86,34 +91,21 @@ public class ElapsedTimeObs implements JDynObserver {
 		
 		lock.readLock().lock();
 		try {
-			for (Entry<String, List<Long>> timeEntry : measuredTimeMap.entrySet()) {
-				if (minCalls > 0 && timeEntry.getValue().size() < minCalls) {
+			for (Entry<String, PerMethodData> timeEntry : measuredTimeMap.entrySet()) {
+				PerMethodData data = timeEntry.getValue();
+				if (minCalls > 0 && data.calls < minCalls) {
 					continue;
 				}
 				JDynUtil.print(printKey, "=====  ", timeEntry.getKey(), "  =====");
 				
-				long worst = Long.MIN_VALUE;
-				long best = Long.MAX_VALUE;
-				long total = 0;
-				double avg = 0;
-				
-				for (Long value : timeEntry.getValue()) {
-					if (worst < value) {
-						worst = value;
-					}
-					if (best > value) {
-						best = value;
-					}
-					total += value;
-				}
-				worst /= times.divideNanosBy;
-				best /= times.divideNanosBy;
-				total /= times.divideNanosBy;
-				avg = total / (double) timeEntry.getValue().size();
+				long worst = (long) (data.worst / times.divideNanosBy);
+				long best = (long) (data.best / times.divideNanosBy);
+				long total = (long) (data.total / times.divideNanosBy);
+				double avg = total / data.calls;
 				
 				String suffix = times.toString();
 				
-				JDynUtil.print(printKey, "calls\t= ", timeEntry.getValue().size());
+				JDynUtil.print(printKey, "calls\t= ", data.calls);
 				JDynUtil.print(printKey, "best\t= ", best, " \t", suffix);
 				JDynUtil.print(printKey, "worst\t= ", worst, " \t", suffix);
 				JDynUtil.print(printKey, "total\t= ", total, " \t", suffix);
@@ -123,6 +115,13 @@ public class ElapsedTimeObs implements JDynObserver {
 		} finally {
 			lock.readLock().unlock();
 		}
+	}
+	
+	protected static class PerMethodData {
+		long calls;
+		long best = Long.MAX_VALUE;
+		long worst = Long.MIN_VALUE;
+		long total;
 	}
 	
 }

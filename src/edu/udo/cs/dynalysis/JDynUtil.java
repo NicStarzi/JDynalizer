@@ -87,14 +87,36 @@ public class JDynUtil {
 		return signature.substring(methodNameIndex + 1, paramListIndex);
 	}
 	
+	public static int toInt(String str, int defaultValue) {
+		if (str == null || str.isEmpty()) {
+			return defaultValue;
+		}
+		try {
+			return Integer.parseInt(str);
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+	
+	public static double toDouble(String str, int defaultValue) {
+		if (str == null || str.isEmpty()) {
+			return defaultValue;
+		}
+		try {
+			return Double.parseDouble(str);
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+	
 	public static String extractArgCaseSensitive(String args, String identifier) {
-		return extractArgInternal(args, args, identifier);
+		return JDynUtil.extractArgInternal(args, args, identifier);
 	}
 	
 	public static String extractArg(String args, String identifier) {
 		String checkArgs = args.toLowerCase();
 		identifier = identifier.toLowerCase();
-		return extractArgInternal(args, checkArgs, identifier);
+		return JDynUtil.extractArgInternal(args, checkArgs, identifier);
 	}
 	
 	private static String extractArgInternal(
@@ -115,8 +137,8 @@ public class JDynUtil {
 	}
 	
 	public static void print(Object key, Object ... args) {
-		Writer writer = getWriter(key);
-		String txt = buildText(args);
+		Writer writer = JDynUtil.getWriter(key);
+		String txt = JDynUtil.buildText(args);
 		try {
 			writer.write(txt);
 		} catch (Exception e) {
@@ -147,13 +169,14 @@ public class JDynUtil {
 	}
 	
 	public static Object startPrinting(String outFile) {
-		return startPrinting(outFile, false);
+		return JDynUtil.startPrinting(outFile, false);
 	}
 	
 	public static Object startPrinting(String outFile, boolean append) {
 		Writer writer;
-		if (!isOutputToFile(outFile)) {
+		if (!JDynUtil.isOutputToFile(outFile)) {
 			writer = new PrintWriter(System.out) {
+				@Override
 				public void close() {
 					flush();
 				}

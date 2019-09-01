@@ -105,20 +105,15 @@ public class JDynSettings {
 	
 	/**
 	 * Constructs {@link JDynSettings} with the given arguments.
-	 * @param includedClasses
-	 * @param excludedClasses
-	 * @param excludedMethods
-	 * @param processorClasses
-	 * @param observerClasses
-	 */
+w	 */
 	protected JDynSettings(
-			String[] includedClasses, 
-			String[] excludedClasses, 
-			String[] excludedMethods, 
-			ClassAndArgs[] processorClasses, 
+			String[] includedClasses,
+			String[] excludedClasses,
+			String[] excludedMethods,
+			ClassAndArgs[] processorClasses,
 			ClassAndArgs[] observerClasses,
-			boolean identifyObjects, 
-			boolean debugMode) 
+			boolean identifyObjects,
+			boolean debugMode)
 	{
 		incPrefixes = includedClasses;
 		excPrefixes = excludedClasses;
@@ -153,9 +148,9 @@ public class JDynSettings {
 	
 	/**
 	 * Returns an array of Class objects from the given array of class names.<br>
-	 * This method can find both classes from the class path and from other 
+	 * This method can find both classes from the class path and from other
 	 * locations on disc by use of a {@link ClassLoader}.<br>
-	 * If a class can not be found it will not be included in the result without 
+	 * If a class can not be found it will not be included in the result without
 	 * any exceptions being thrown.<br>
 	 * @param classNames		must be non-null
 	 */
@@ -199,7 +194,7 @@ public class JDynSettings {
 	}
 	
 	/**
-	 * Returns true if the class with the given class name should be included 
+	 * Returns true if the class with the given class name should be included
 	 * in the analysis.<br>
 	 * @param className			the full name of the class including packages
 	 * @return					true if the class is supposed to be instrumented
@@ -219,9 +214,9 @@ public class JDynSettings {
 	}
 	
 	/**
-	 * Returns true if the method with the given signature should be included 
+	 * Returns true if the method with the given signature should be included
 	 * in the analysis.<br>
-	 * @param methodSignature	the full signature of the method including the 
+	 * @param methodSignature	the full signature of the method including the
 	 * 							full name of the enclosing class
 	 * @return					true if the method is supposed to be instrumented
 	 */
@@ -235,17 +230,17 @@ public class JDynSettings {
 	}
 	
 	/**
-	 * Returns true if there is at least one {@link JDynProcessor} 
+	 * Returns true if there is at least one {@link JDynProcessor}
 	 * registered in the settings file.<br>
-	 * @return					true if the Collection of {@link JDynProcessor CallSequenceProcessors} 
-	 * 							returned by {@link #createProcessors()} is not empty. 
+	 * @return					true if the Collection of {@link JDynProcessor CallSequenceProcessors}
+	 * 							returned by {@link #createProcessors()} is not empty.
 	 */
 	public boolean hasProcessors() {
 		return procClasses.length > 0;
 	}
 	
 	/**
-	 * Creates and returns a Collection of instances of all 
+	 * Creates and returns a Collection of instances of all
 	 * {@link JDynProcessor CallSequenceProcessors} that are registered.
 	 * @return					a non-null Collection of {@link JDynProcessor CallSequenceProcessors}
 	 */
@@ -267,17 +262,17 @@ public class JDynSettings {
 	}
 	
 	/**
-	 * Returns true if there is at least one {@link JDynObserver} 
+	 * Returns true if there is at least one {@link JDynObserver}
 	 * registered in the settings file.<br>
-	 * @return					true if the Collection of {@link JDynObserver CstgObservers} 
-	 * 							returned by {@link #createObservers()} is not empty. 
+	 * @return					true if the Collection of {@link JDynObserver CstgObservers}
+	 * 							returned by {@link #createObservers()} is not empty.
 	 */
 	public boolean hasObservers() {
 		return obsClasses.length > 0;
 	}
 	
 	/**
-	 * Creates and returns a Collection of instances of all 
+	 * Creates and returns a Collection of instances of all
 	 * {@link JDynObserver CstgObservers} that are registered.
 	 * @return					a non-null Collection of {@link JDynObserver CstgObservers}
 	 */
@@ -303,8 +298,8 @@ public class JDynSettings {
 	
 	/**
 	 * Writes the contents of this {@link JDynSettings} object to the given preferences.<br>
-	 * The contents are written in a way that a {@link JDynSettings} object with identical 
-	 * contents can be recreated from the preferences by using the {@link #JDynSettings(Preferences)} 
+	 * The contents are written in a way that a {@link JDynSettings} object with identical
+	 * contents can be recreated from the preferences by using the {@link #JDynSettings(Preferences)}
 	 * constructor.<br>
 	 * @param prefs			a non-null {@link Preferences} object
 	 */
@@ -339,6 +334,7 @@ public class JDynSettings {
 		prefs.putBoolean(PREFERENCE_KEYWORD_DEBUG, debug);
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Settings [incClasses=");
@@ -358,14 +354,14 @@ public class JDynSettings {
 	}
 	
 	/**
-	 * This inner classes is needed to expose the protected method 
-	 * {@link #defineClass(String, byte[], int, int)} from {@link ClassLoader} 
+	 * This inner classes is needed to expose the protected method
+	 * {@link #defineClass(String, byte[], int, int)} from {@link ClassLoader}
 	 * to the public.<br>
 	 */
 	private static class ProxyClassLoader extends ClassLoader {
 		
 		/**
-		 * Calls super{@link #defineClass(String, byte[], int, int)} with 0 
+		 * Calls super{@link #defineClass(String, byte[], int, int)} with 0
 		 * and bytes.length as 3rd and 4th argument respectively.<br>
 		 * @param className		the name of the class
 		 * @param bytes			the byte code for the class

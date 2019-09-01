@@ -3,11 +3,11 @@ package edu.udo.cs.dynaliser;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.udo.cs.dynalysis.JDynObserver;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
-import javassist.CtPrimitiveType;
 import javassist.Modifier;
 import javassist.bytecode.AccessFlag;
 
@@ -18,7 +18,7 @@ public class JDynClassTransformation {
 	 */
 	private static final String JCSTG_EVENT_DISPATCHER = JDynEventDispatcher.class.getName();
 	/**
-	 * The name of the private member variable used to determine whether a class 
+	 * The name of the private member variable used to determine whether a class
 	 * was initialized yet or not.<br>
 	 * A new member variable of this name will be injected in each modified class.<br>
 	 */
@@ -29,7 +29,7 @@ public class JDynClassTransformation {
 	 */
 	private final StringBuilder callbackBuilder = new StringBuilder(256);
 	/**
-	 * All behaviors that belong to the class that is currently being 
+	 * All behaviors that belong to the class that is currently being
 	 * modified. This is used for the initialization.<br>
 	 */
 	private final List<CtBehavior> behaviorList = new ArrayList<>();
@@ -65,12 +65,12 @@ public class JDynClassTransformation {
 		classRef = className + ".class";
 		
 		if (isObsCB) {
-			CtClass initFieldType = CtPrimitiveType.booleanType;
-			CtField initField = new CtField(initFieldType, 
+			CtClass initFieldType = CtClass.booleanType;
+			CtField initField = new CtField(initFieldType,
 					TRANSFORM_CLASS_INIT_FIELD_NAME, transClass);
 			
 			// Volatile for multi-threaded applications
-			initField.setModifiers(initField.getModifiers() 
+			initField.setModifiers(initField.getModifiers()
 					| Modifier.STATIC | Modifier.VOLATILE);
 			
 			// Synthetic to not show up during reflection
@@ -110,11 +110,11 @@ public class JDynClassTransformation {
 	}
 	
 	/**
-	 * Manipulates the byte code of the given behavior to add callbacks at the 
-	 * beginning and the end of the user code, as well as a try-catch-block 
-	 * enclosing the original user code and the initialization callback used by 
+	 * Manipulates the byte code of the given behavior to add callbacks at the
+	 * beginning and the end of the user code, as well as a try-catch-block
+	 * enclosing the original user code and the initialization callback used by
 	 * {@link JDynObserver CstgObservers} if needed.<br>
-	 * The callbacks are used to signal the start and end of an invocation of 
+	 * The callbacks are used to signal the start and end of an invocation of
 	 * the given behavior.<br>
 	 * 
 	 * @param behavior		either a CtMethod or CtConstructor that is to be changed
@@ -128,7 +128,7 @@ public class JDynClassTransformation {
 		boolean hasParams = behavior.getParameterTypes().length > 0;
 		boolean hasReturnVal = false;
 		if (behavior instanceof CtMethod) {
-			if (((CtMethod) behavior).getReturnType() != CtPrimitiveType.voidType) {
+			if (((CtMethod) behavior).getReturnType() != CtClass.voidType) {
 				hasReturnVal = true;
 			}
 		}
@@ -195,10 +195,10 @@ public class JDynClassTransformation {
 	}
 	
 	/**
-	 * Builds a callback to the {@link JDynEventDispatcher} calling either 
-	 * {@link JDynEventDispatcher#afterConstructor(Object)}, 
-	 * {@link JDynEventDispatcher#afterStaticMethod(Class, String, Object, boolean)} or 
-	 * {@link JDynEventDispatcher#afterMethod(Object, String, Object, boolean)} with the 
+	 * Builds a callback to the {@link JDynEventDispatcher} calling either
+	 * {@link JDynEventDispatcher#afterConstructor(Object)},
+	 * {@link JDynEventDispatcher#afterStaticMethod(Class, String, Object, boolean)} or
+	 * {@link JDynEventDispatcher#afterMethod(Object, String, Object, boolean)} with the
 	 * respective arguments.<br>
 	 * @param method		the method to which the callback belongs
 	 * @param methodName	the name of the method
@@ -227,12 +227,12 @@ public class JDynClassTransformation {
 	}
 	
 	/**
-	 * Builds a callback to the {@link JDynEventDispatcher#exception(Exception)} 
-	 * method. The callback must be inserted inside the catch block of a try-catch 
+	 * Builds a callback to the {@link JDynEventDispatcher#exception(Exception)}
+	 * method. The callback must be inserted inside the catch block of a try-catch
 	 * statement.<br>
 	 * The exception variable is assumed to be called <code>e</code>.<br>
-	 * @return			compilable java code that represents a callback to 
-	 * 					{@link JDynEventDispatcher#exception(Exception)} followed 
+	 * @return			compilable java code that represents a callback to
+	 * 					{@link JDynEventDispatcher#exception(Exception)} followed
 	 * 					by a <code>throw</code> statement.<br>
 	 */
 	private String buildCatchCallback() {
@@ -245,13 +245,13 @@ public class JDynClassTransformation {
 	}
 	
 	/**
-	 * Builds a callback to the {@link JDynEventDispatcher} invoking the method 
+	 * Builds a callback to the {@link JDynEventDispatcher} invoking the method
 	 * with name <code>methodName</code> with the given parameters.
 	 * @param methodName					the name of the method that is to be called
 	 * @param params						an array containing the parameters to be passed
 	 * @throws NullPointerException			if methodName or params is null
 	 * @throws IndexOutOfBoundsException	if params has no elements
-	 * @return								compilable java code that represents a callback 
+	 * @return								compilable java code that represents a callback
 	 * 										to a method of the {@link JDynEventDispatcher}
 	 */
 	private String buildCallback(String methodName, String ... params) {

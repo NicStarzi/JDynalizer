@@ -21,19 +21,21 @@ import javassist.Modifier;
 public class JDynAgent implements ClassFileTransformer {
 	
 	/**
-	 * This file will be loaded as settings file if the no arguments are 
+	 * This file will be loaded as settings file if the no arguments are
 	 * provided to the {@link #premain(String, Instrumentation)} method.<br>
 	 */
 	private static final String DEFAULT_SETTINGS_FILE_NAME = "jdynSettings.xml";
+	private static Instrumentation instr;
 	
 	/**
-	 * This special method is being called before the main method of the user 
-	 * application; it is part of the Instrumentation-API and used to 
+	 * This special method is being called before the main method of the user
+	 * application; it is part of the Instrumentation-API and used to
 	 * transform the byte code of the user class files.<br>
 	 * @param agentArguments	jcstg takes one optional argument for the settings file
 	 * @param instrumentation	passed by the system to attach the {@link ClassFileTransformer}
 	 */
 	public static void premain(String agentArguments, Instrumentation instrumentation) {
+		instr = instrumentation;
 		// Assume default values for settings
 		String settingsFileName = DEFAULT_SETTINGS_FILE_NAME;
 		boolean debug = false;
@@ -43,8 +45,8 @@ public class JDynAgent implements ClassFileTransformer {
 			for (String arg : args) {
 				String lowerArg = arg.toLowerCase();
 				// Enable debug output ?
-				if ("-d".equals(lowerArg) 
-						|| "-debug".equals(lowerArg)) 
+				if ("-d".equals(lowerArg)
+						|| "-debug".equals(lowerArg))
 				{
 					debug = true;
 				// Settings file path
@@ -67,30 +69,33 @@ public class JDynAgent implements ClassFileTransformer {
 		instrumentation.addTransformer(agent);
 	}
 	
+	public static long getObjectSize(Object obj) {
+		return instr.getObjectSize(obj);
+	}
+	
 	/**
 	 * This key is used for the preferences used to store the user settings.<br>
 	 */
 	protected static final String JDYN_PREFERENCES = JDynAgent.class.getName().replace('.', '/')+"/Preferences";
 	
 	/**
-	 * This settings object is parsed from a file for easier access to 
+	 * This settings object is parsed from a file for easier access to
 	 * user settings.<br>
 	 */
 	private final JDynSettings settings;
 	/**
-	 * {@link JDynClassTransformation} contains utility methods to inject byte code 
+	 * {@link JDynClassTransformation} contains utility methods to inject byte code
 	 * to a class to make it usable by the JCSTG.<br>
 	 */
 	private final JDynClassTransformation transformation;
 	
 	/**
-	 * Parses the settings file (if possible) and saves the settings to the 
+	 * Parses the settings file (if possible) and saves the settings to the
 	 * {@link Preferences}.<br>
-	 * @param settingsFileName
 	 */
 	private JDynAgent(String settingsFileName, boolean debug) {
 		if (debug) {
-			debugMsg("Parse settings file", settingsFileName);
+			JDynAgent.debugMsg("Parse settings file", settingsFileName);
 		}
 		JDynSettingsParser settingsParser = new JDynSettingsParser();
 		settings = settingsParser.parseSettings(new File(settingsFileName));
@@ -101,8 +106,8 @@ public class JDynAgent implements ClassFileTransformer {
 		// In case the settings do not contain any observers or processors there is nothing to do
 		if (!isNeeded()) {
 			if (settings.isDebug()) {
-				debugMsg("No", JDynObserver.class.getSimpleName(), "or", 
-						JDynProcessor.class.getSimpleName(), 
+				JDynAgent.debugMsg("No", JDynObserver.class.getSimpleName(), "or",
+						JDynProcessor.class.getSimpleName(),
 						"registered. Analysis aborted.");
 			}
 			transformation = null;
@@ -113,31 +118,31 @@ public class JDynAgent implements ClassFileTransformer {
 		transformation = new JDynClassTransformation();
 		if (settings.hasObservers()) {
 			if (settings.isDebug()) {
-				debugMsg("Enable", JDynObserver.class.getSimpleName(), 
+				JDynAgent.debugMsg("Enable", JDynObserver.class.getSimpleName(),
 						"callbacks.");
 			}
 			transformation.enableObserverCallback();
 		}
 		if (settings.hasProcessors()) {
 			if (settings.isDebug()) {
-				debugMsg("Enable", JDynProcessor.class.getSimpleName(), 
+				JDynAgent.debugMsg("Enable", JDynProcessor.class.getSimpleName(),
 						"callbacks.");
 			}
 			transformation.enableProcessorCallback();
 		}
 		
-		// We write the settings we read from file to the preferences to share 
+		// We write the settings we read from file to the preferences to share
 		// them with other ClassLoader contexts.
 		Preferences prefs = Preferences.userRoot().node(JDYN_PREFERENCES);
 		if (settings.isDebug()) {
-			debugMsg("Write settings to preferences:", settings);
+			JDynAgent.debugMsg("Write settings to preferences:", settings);
 		}
 		settings.writeToPreferences(prefs);
 		try {
 			prefs.flush();
 		} catch (BackingStoreException e) {
 			if (settings.isDebug()) {
-				debugMsg("Witing settings failed. Reason: ");
+				JDynAgent.debugMsg("Witing settings failed. Reason: ");
 				e.printStackTrace();
 			}
 			// Dont care about the exception. There is nothing we can do here.
@@ -145,13 +150,13 @@ public class JDynAgent implements ClassFileTransformer {
 	}
 	
 	/**
-	 * Returns true if any callbacks would be added to classes passed to the 
-	 * {@link ClassFileTransformer}. Returns false if the instrumentation is 
+	 * Returns true if any callbacks would be added to classes passed to the
+	 * {@link ClassFileTransformer}. Returns false if the instrumentation is
 	 * not needed at all.<br>
 	 * @return		true if instrumentation should happen, false if it is not needed
 	 */
 	public boolean isNeeded() {
-		return settings.hasClassesIncluded() 
+		return settings.hasClassesIncluded()
 				&& (settings.hasObservers() || settings.hasProcessors());
 	}
 	
@@ -163,10 +168,11 @@ public class JDynAgent implements ClassFileTransformer {
 	 * @param protectionDomain		dont care about this
 	 * @param classfileBuffer		might be null in which case we do nothing
 	 */
+	@Override
 	public byte[] transform(
 			ClassLoader loader, String className,
 			Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
-			byte[] classfileBuffer) throws IllegalClassFormatException 
+			byte[] classfileBuffer) throws IllegalClassFormatException
 	{
 		// Could be null for some reason
 		if (className == null) {
@@ -177,14 +183,14 @@ public class JDynAgent implements ClassFileTransformer {
 		// Java class names use '.' instead of '/' which is used in file path names
 		className = className.replace('/', '.');
 		if (debug) {
-			debugMsg("Check class", className, "for analysis.");
+			JDynAgent.debugMsg("Check class", className, "for analysis.");
 		}
 		// Check if class is included
 		if (!settings.isClassIncluded(className)) {
 			return classfileBuffer;
 		}
 		if (debug) {
-			debugMsg("Instrument class", className);
+			JDynAgent.debugMsg("Instrument class", className);
 		}
 		// If the class object is loaded but an exception is thrown we must detach it in the finally block
 		CtClass classObj = null;
@@ -211,21 +217,22 @@ public class JDynAgent implements ClassFileTransformer {
 				for (int i = 0; i < behaviors.length; i++) {
 					CtBehavior behav = behaviors[i];
 					if (debug) {
-						debugMsg("Check method", behav.getLongName(), 
+						JDynAgent.debugMsg("Check method", behav.getLongName(),
 								"for analysis.");
 					}
 					// Don't manipulate abstract or native methods
 					if (!isAbstract(behav)
 							&& !isNative(behav)
+						// TODO: should default constructors be excluded?
 //							&& !isDefaultConstructor(methods[i])
-							) 
+							)
 					{
 						// If behavior is a method check settings if method is included
 						if (behav instanceof CtMethod) {
 							CtMethod method = (CtMethod) behav;
 							if (settings.isMethodIncluded(method.getLongName())) {
 								if (debug) {
-									debugMsg("Instrument method", method.getLongName());
+									JDynAgent.debugMsg("Instrument method", method.getLongName());
 								}
 								transformation.addBehavior(method);
 							}
@@ -235,7 +242,7 @@ public class JDynAgent implements ClassFileTransformer {
 						}
 					} else {
 						if (debug) {
-							debugMsg("Method", behav.getLongName(), 
+							JDynAgent.debugMsg("Method", behav.getLongName(),
 									"is abstract or native. No instrumentation.");
 						}
 					}
@@ -245,11 +252,11 @@ public class JDynAgent implements ClassFileTransformer {
 				result = classObj.toBytecode();
 			} else {
 				if (debug) {
-					debugMsg(className, "is interface. No instrumentation.");
+					JDynAgent.debugMsg(className, "is interface. No instrumentation.");
 				}
 			}
 		} catch (Exception e) {
-			debugMsg("Error during instrumentation. ClassName=",className);
+			JDynAgent.debugMsg("Error during instrumentation. ClassName=",className);
 			e.printStackTrace();
 		} finally {
 			// We might not have modified the class at all
